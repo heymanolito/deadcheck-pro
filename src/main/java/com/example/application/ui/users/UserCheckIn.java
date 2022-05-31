@@ -21,6 +21,7 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteAlias;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -32,6 +33,7 @@ import java.util.Set;
 
 @PageTitle("Deacheck | User Tracking")
 @Route(value = "tracking", layout = MainLayout.class)
+@RouteAlias(value = "")
 @RolesAllowed("USER")
 public class UserCheckIn extends Div {
 
@@ -113,7 +115,7 @@ public class UserCheckIn extends Div {
     private void createStatusColumn() {
         statusColumn = grid.addColumn(new ComponentRenderer<>(user -> {
             Select<Status> select = new Select<>();
-            select.setItems(Status.values());
+            select.setItems(Status.userStatus());
             select.setPlaceholder("Seleccione un estado");
             select.setValue(user.getStatus());
             select.setLabel("Status");

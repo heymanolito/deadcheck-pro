@@ -80,27 +80,6 @@ public class UserService {
         return repository.findAllByName(name);
     }
 
-    public LocalDateTime getLastAttendance() {
-        Authentication userAuth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = repository.findByUsername(userAuth.getName());
-        try {
-            if (Status.Entrada.equals(currentUser.getStatus())) {
-                if (currentUser.getTrackingList().stream().map(Tracking::getWorkCheckIn).max(LocalDateTime::compareTo).isPresent()) {
-                    return currentUser.getTrackingList().stream().map(Tracking::getWorkCheckIn).max(LocalDateTime::compareTo).get();
-                }
-            } else if (currentUser.getStatus() == Status.Salida) {
-                if (currentUser.getTrackingList().stream().map(Tracking::getWorkCheckOut).max(LocalDateTime::compareTo).isPresent()) {
-                    return currentUser.getTrackingList().stream().map(Tracking::getWorkCheckOut).max(LocalDateTime::compareTo).get();
-                }
-            } else {
-                throw new ParteNotFoundException("No se ha encontrado ningun parte");
-            }
-        } catch (ParteNotFoundException ex) {
-            log.info("El usuario " + currentUser.getName() + "no tiene ninguna fecha de " + currentUser.getStatus(), ex);
-        }
-        return null;
-    }
-
     public LocalDateTime getLastAttendance(User user) {
         User currentUser = null;
         try {
@@ -108,6 +87,7 @@ public class UserService {
             if (repository.findById(user.getUser_id()).isPresent()) {
                 currentUser = repository.findById(user.getUser_id()).get();
             }
+            assert currentUser != null;
             if (Status.Entrada.equals(currentUser.getStatus())) {
                 if (currentUser.getTrackingList().stream().map(Tracking::getWorkCheckIn).max(LocalDateTime::compareTo).isPresent()) {
                     return currentUser.getTrackingList().stream().map(Tracking::getWorkCheckIn).max(LocalDateTime::compareTo).get();

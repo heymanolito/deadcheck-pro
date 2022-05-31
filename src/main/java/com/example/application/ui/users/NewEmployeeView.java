@@ -41,7 +41,6 @@ public class NewEmployeeView extends VerticalLayout implements KeyNotifier {
     HorizontalLayout actions = new HorizontalLayout(save, cancel, delete);
 
     Binder<User> binder = new Binder<>(User.class);
-    //private ChangeHandler changeHandler;
 
 
     @Autowired
@@ -52,48 +51,5 @@ public class NewEmployeeView extends VerticalLayout implements KeyNotifier {
         binder.bindInstanceFields(this);
 
     }
-
-//    void delete() {
-//        userService.delete(user.getUser_id());
-//        changeHandler.onChange();
-//    }
-//
-//    void save() {
-//        userService.update(user);
-//        changeHandler.onChange();
-//    }
-//
-//    public final void editUser(User u) {
-//        if (u == null) {
-//            setVisible(false);
-//            return;
-//        }
-//        final boolean persisted = u.getUser_id() != null;
-//        if (persisted && userService.findById(u.getUser_id()).isPresent()) {
-//            // Find fresh entity for editing
-//            user = userService.findById(u.getUser_id()).get();
-//        }
-//        else {
-//            user = u;
-//        }
-//        cancel.setVisible(persisted);
-//
-//        binder.setBean(user);
-//
-//        setVisible(true);
-//
-//
-//        firstName.focus();
-//    }
-//
-//    public interface ChangeHandler {
-//        void onChange();
-//    }
-//
-//    public void setChangeHandler(ChangeHandler h) {
-//        // ChangeHandler is notified when either save or delete
-//        // is clicked
-//        changeHandler = h;
-//    }
 
 }

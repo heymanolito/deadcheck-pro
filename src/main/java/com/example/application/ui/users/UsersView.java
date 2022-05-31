@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.example.application.backend.data.util.DateUtil.formatDate;
@@ -201,6 +202,7 @@ public class UsersView extends Div {
             hl.add(img, span);
             return hl;
         })).setComparator(user -> user.getName() + " " + user.getSurname()).setHeader("Nombre");
+        nameColumn.setWidth("20%");
     }
 
     private void createDepartmentColumn() {
@@ -209,18 +211,33 @@ public class UsersView extends Div {
 
     private void createEmailColumn() {
         emailColumn = grid.addColumn(User::getEmail).setHeader("Email");
+        emailColumn.setWidth("14%");
     }
 
     private void createStatusColumn() {
 
         statusColumn = grid.addColumn(new ComponentRenderer<>(user -> {
             Span span = new Span();
-            span.setText(user.getStatus().toString() + ": " + formatDate(userService.getLastAttendance(user)));
+            span.setText(getCurrentUserStatus(user.getStatus()) + ": " + formatDate(userService.getLastAttendance(user)));
             span.getElement()
                     .setAttribute("theme", setBadge(user.getStatus()));
             return span;
         })).setComparator(User::getStatus).setHeader("Status");
 
+        statusColumn.setWidth("16%");
+    }
+
+    private String getCurrentUserStatus(Status status) {
+        if(status.equals(Status.Entrada)) {
+            return "Entrada";
+        } else if(status.equals(Status.Salida)) {
+            return "Salida";
+        } else if (status.equals(Status.Vacaciones)) {
+            return "Vacaciones";
+        }
+        else {
+            return "No ha fichado";
+        }
 
     }
 
@@ -228,15 +245,15 @@ public class UsersView extends Div {
         String statusString = "";
         switch (status) {
             case Entrada: {
-                statusString = "success";
+                statusString = "badge success";
                 break;
             }
             case Salida : {
-                statusString = "danger";
+                statusString = "badge error";
                 break;
             }
             case Vacaciones: {
-                statusString = "warning";
+                statusString = "badge contrast";
                 break;
             }
         };

@@ -127,7 +127,7 @@ public class MainLayout extends AppLayout {
 
                 new MenuItemInfo("Resumen", "la la-list-ol", UsersView.class), //
 
-                new MenuItemInfo("Resumen", "la la-list-ol", UserCheckIn.class)
+                new MenuItemInfo("Tracking", "la la-list-ol", UserCheckIn.class)
         };
     }
 
