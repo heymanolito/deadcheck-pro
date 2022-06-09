@@ -5,6 +5,7 @@ import com.example.application.backend.data.entity.Tracking;
 import com.example.application.backend.data.entity.User;
 import com.example.application.backend.data.exception.ParteNotFoundException;
 import com.example.application.backend.data.repository.UserRepository;
+import com.example.application.backend.data.util.DateUtil;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -27,7 +28,7 @@ import static com.itextpdf.text.FontFactory.HELVETICA;
 import static com.itextpdf.text.PageSize.A4;
 
 @Service
-public class UserService {
+public class UserService implements IUserService{
 
     private static final Logger log = LoggerFactory.getLogger(BreakServiceImpl.class);
     private final UserRepository repository;
@@ -59,25 +60,9 @@ public class UserService {
         return repository.findByUsername(username);
     }
 
-    public List<User> findByEmail(String email) {
-        return repository.findAllByEmail(email);
-    }
-
-    public List<User> findByStatus(Status status) {
-        return repository.findAllByStatus(status);
-    }
-
-    public List<User> findByNameContainingIgnoreCase(String name) {
-        return repository.findByNameContainingIgnoreCase(name);
-    }
-
 
     public List<User> orderByUserId() {
         return repository.orderByUserId();
-    }
-
-    public List<User> findAllByName(String name) {
-        return repository.findAllByName(name);
     }
 
     public LocalDateTime getLastAttendance(User user) {
@@ -89,12 +74,16 @@ public class UserService {
             }
             assert currentUser != null;
             if (Status.Entrada.equals(currentUser.getStatus())) {
-                if (currentUser.getTrackingList().stream().map(Tracking::getWorkCheckIn).max(LocalDateTime::compareTo).isPresent()) {
-                    return currentUser.getTrackingList().stream().map(Tracking::getWorkCheckIn).max(LocalDateTime::compareTo).get();
+                if(currentUser.getTrackingList().get(currentUser.getTrackingList().size() - 1).getWorkCheckIn() != null){
+                    return currentUser.getTrackingList().get(currentUser.getTrackingList().size() - 1).getWorkCheckIn();
+                } else {
+                    return null;
                 }
             } else if (currentUser.getStatus() == Status.Salida) {
-                if (currentUser.getTrackingList().stream().map(Tracking::getWorkCheckOut).max(LocalDateTime::compareTo).isPresent()) {
-                    return currentUser.getTrackingList().stream().map(Tracking::getWorkCheckOut).max(LocalDateTime::compareTo).get();
+                if(currentUser.getTrackingList().get(currentUser.getTrackingList().size() - 1).getWorkCheckOut() != null){
+                    return currentUser.getTrackingList().get(currentUser.getTrackingList().size() - 1).getWorkCheckOut();
+                } else {
+                    return null;
                 }
             } else {
                 throw new ParteNotFoundException("No se ha encontrado ningun parte");
@@ -134,12 +123,12 @@ public class UserService {
                     if (tracking.getWorkCheckIn() == null) {
                         table.addCell("No ha fichado");
                     } else {
-                        table.addCell(new Phrase(tracking.getWorkCheckInIfNull().toString(), FontFactory.getFont(HELVETICA, DEFAULT_FONT_SIZE)));
+                        table.addCell(new Phrase(DateUtil.formatDate(tracking.getWorkCheckInIfNull()), FontFactory.getFont(HELVETICA, DEFAULT_FONT_SIZE)));
                     }
                     if (tracking.getWorkCheckOut() == null) {
                         table.addCell("No ha fichado");
                     } else {
-                        table.addCell(new Phrase(tracking.getWorkCheckOutIfNull().toString(), FontFactory.getFont(HELVETICA, DEFAULT_FONT_SIZE)));
+                        table.addCell(new Phrase(DateUtil.formatDate(tracking.getWorkCheckOutIfNull()), FontFactory.getFont(HELVETICA, DEFAULT_FONT_SIZE)));
                     }
 
                     if (tracking.getTotalWorkTime() == null) {
@@ -161,5 +150,9 @@ public class UserService {
             log.info("Se ha generado el PDF del usuario " + user.getName());
 
         }
+    }
+
+    public void deleteById(Long id) {
+        repository.deleteById(id);
     }
 }

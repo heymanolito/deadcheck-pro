@@ -2,6 +2,7 @@ package com.example.application.ui.users;
 
 import com.example.application.backend.data.entity.Department;
 import com.example.application.backend.data.entity.Status;
+import com.example.application.backend.data.entity.Tracking;
 import com.example.application.backend.data.entity.User;
 import com.example.application.backend.data.service.UserService;
 import com.example.application.ui.MainLayout;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
@@ -39,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.RolesAllowed;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.application.backend.data.util.DateUtil.formatDate;
@@ -61,12 +64,12 @@ public class UsersView extends Div {
     private Grid.Column<User> pdfColumn;
     private Component button;
     //Campos de texto
-    private final TextField profilePicture = new TextField("Foto de perfil");
+    @PropertyId("profilePictureUrl")
+    private final TextField profilePictureUrl = new TextField("Foto de perfil");
     private final TextField name = new TextField("Nombre");
     private final TextField surname = new TextField("Apellidos");
     private final TextField email = new TextField("Email");
     private final ComboBox<Department> department = new ComboBox<>("Departamento", Department.values());
-    private final ComboBox<Status> status = new ComboBox<>("Estado", Status.values());
     private final Binder<User> binder = new BeanValidationBinder<>(User.class);
     //Editor
     Button save = new Button("Guardar", VaadinIcon.CHECK.create());
@@ -100,6 +103,8 @@ public class UsersView extends Div {
 
     private void validateAndSave() {
         try {
+            user.setTrackingList(new ArrayList<>());
+            user.getTrackingList().add(new Tracking());
             binder.writeBean(user);
             setUser(user);
             userService.update(user);
@@ -158,7 +163,7 @@ public class UsersView extends Div {
 
     private VerticalLayout createDialogLayout() {
 
-        VerticalLayout dialogLayout = new VerticalLayout(profilePicture, name, surname, email, department, status);
+        VerticalLayout dialogLayout = new VerticalLayout(profilePictureUrl, name, surname, email, department);
         dialogLayout.setPadding(false);
         dialogLayout.setSpacing(false);
         dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
@@ -218,13 +223,31 @@ public class UsersView extends Div {
 
         statusColumn = grid.addColumn(new ComponentRenderer<>(user -> {
             Span span = new Span();
-            span.setText(getCurrentUserStatus(user.getStatus()) + ": " + formatDate(userService.getLastAttendance(user)));
+            span.setText(buildStatus(user));
             span.getElement()
-                    .setAttribute("theme", setBadge(user.getStatus()));
+                    .setAttribute("theme", setBadge(user));
             return span;
         })).setComparator(User::getStatus).setHeader("Status");
 
         statusColumn.setWidth("16%");
+    }
+
+    public String buildStatus(User user) {
+        String status = "";
+        if(user.getStatus() == null) {
+            status = "No ha fichado";
+        } else {
+            status = getCurrentUserStatus(user.getStatus()) + " " + getUserAttendance(user);
+        }
+        return status;
+    }
+
+    public String getUserAttendance(User user) {
+        if(userService.getLastAttendance(user) == null) {
+            return "No ha fichado";
+        } else {
+            return formatDate(userService.getLastAttendance(user));
+        }
     }
 
     private String getCurrentUserStatus(Status status) {
@@ -241,23 +264,27 @@ public class UsersView extends Div {
 
     }
 
-    private String setBadge(Status status) {
+    private String setBadge(User user) {
         String statusString = "";
-        switch (status) {
-            case Entrada: {
-                statusString = "badge success";
-                break;
+        if(user.getStatus() == null) {
+            return statusString;
+        } else {
+            Status status = user.getStatus();
+            switch (status) {
+                case Entrada: {
+                    statusString = "badge success";
+                    break;
+                }
+                case Salida : {
+                    statusString = "badge error";
+                    break;
+                }
+                case Vacaciones: {
+                    statusString = "badge contrast";
+                    break;
+                }
             }
-            case Salida : {
-                statusString = "badge error";
-                break;
-            }
-            case Vacaciones: {
-                statusString = "badge contrast";
-                break;
-            }
-        };
-
+        }
         return statusString;
     }
     private void createPDFColumn() {
